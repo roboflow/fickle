@@ -8,9 +8,19 @@ on:
       - 'setup.py'
       - 'src/**'
 
+permissions:
+  contents: read
+
 jobs:
   publish-test:
+    name: Publish to TestPyPI
     runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/rffickle/
+    permissions:
+      id-token: write  # Required for OIDC/Trusted Publishing
+      contents: read
     steps:
       - name: 🛎️ Checkout
         uses: actions/checkout@v4
@@ -31,7 +41,7 @@ jobs:
           twine check dist/*
           
       - name: 🚀 Publish to TestPyPI
-        env:
-          PYPI_TEST_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
-        run: |
-          twine upload --repository testpypi dist/* -u __token__ -p $PYPI_TEST_PASSWORD --verbose
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          attestations: true
