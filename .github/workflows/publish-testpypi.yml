@@ -1,21 +1,20 @@
-name: Publish rffickle to PyPI
+name: Publish rffickle to TestPyPI
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'setup.py'
+      - 'src/**'
 
 permissions:
   contents: read
 
 jobs:
-  publish-release:
-    name: Publish Release Package
+  publish-test:
+    name: Publish Test Package
     runs-on: ubuntu-latest
-    environment:
-      name: release
-      url: https://pypi.org/project/rffickle/
     timeout-minutes: 10
     steps:
       - name: 📥 Checkout the repository
@@ -36,9 +35,9 @@ jobs:
           python -m build
           twine check --strict dist/*
 
-      - name: 🚀 Publish to PyPI
+      - name: 🚀 Publish to TestPyPI
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
         run: |
-          twine upload dist/*
+          twine upload --repository testpypi dist/*
