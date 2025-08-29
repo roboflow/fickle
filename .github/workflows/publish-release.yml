@@ -1,44 +1,37 @@
 name: Publish rffickle to PyPI
 
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [created]
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
-  publish-release:
-    name: Publish Release Package
+  publish:
     runs-on: ubuntu-latest
-    environment:
-      name: release
-      url: https://pypi.org/project/rffickle/
-    timeout-minutes: 10
     steps:
-      - name: 📥 Checkout the repository
+      - name: 🛎️ Checkout
         uses: actions/checkout@v4
-
+        with:
+          ref: ${{ github.head_ref }}
+          
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
+          
       - name: 📦 Install build dependencies
         run: |
           python -m pip install --upgrade pip
           pip install build twine
-
-      - name: 🏗️ Build source and wheel distributions
+          
+      - name: 🏗️ Build package
         run: |
           python -m build
-          twine check --strict dist/*
-
+          twine check dist/*
+          
       - name: 🚀 Publish to PyPI
         env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
-          twine upload dist/*
+          twine upload dist/* -u $PYPI_USERNAME -p $PYPI_PASSWORD --verbose
